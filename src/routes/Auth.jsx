@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import { Box, Typography, TextField, Button, Divider } from '@mui/material';
 import { authService } from '../firebase';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+} from 'firebase/auth';
 
 function Auth() {
   const [newAccount, setNewAccount] = useState(true);
@@ -11,6 +16,7 @@ function Auth() {
   });
 
   const auth = authService;
+  const provider = new GoogleAuthProvider();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -50,6 +56,21 @@ function Auth() {
         });
     }
   };
+  const onGoogleSignIn = () => {
+    signInWithPopup(auth, provider)
+      .then((result) => {
+        const credential = GoogleAuthProvider.credentialFromResult(result);
+        const token = credential.accessToken;
+        const user = result.user;
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        const email = error.customData.email;
+        const credential = GoogleAuthProvider.credentialFromError(error);
+        console.log(errorCode, errorMessage, email, credential);
+      });
+  };
   return (
     <>
       <Typography variant="h2" component="h2">
@@ -76,6 +97,12 @@ function Auth() {
         <Button sx={{ mt: 2 }} type="submit" variant="contained">
           {newAccount ? '회원가입' : '로그인'}
         </Button>
+        <Divider sx={{ my: 3 }} />
+
+        <Button sx={{ mt: 2 }} type="button" variant="contained" onClick={onGoogleSignIn}>
+          {newAccount ? '구글로 회원가입' : '구글로 로그인'}
+        </Button>
+
         <Divider sx={{ my: 3 }} />
         <Button
           sx={{ mt: 2 }}
